@@ -17,16 +17,19 @@
     color: #61dafb;
 }
 
+p {
+    margin: 0;
+}
+
 .form-style {
     display: flex;
     flex-direction: column;
     gap: 20px;
-
 }
 
 .input {
     height: 40px;
-    width: 250px;
+    width: 413px;
     border-radius: 10px;
 }
 

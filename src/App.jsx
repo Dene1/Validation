@@ -1,82 +1,58 @@
 import "./App.css";
-import {useState} from "react";
-
-const sendFormData = (formData) => {
-    console.log(formData);
-};
-
+import {useForm} from "react-hook-form";
+import * as yup from "yup";
+import {yupResolver} from "@hookform/resolvers/yup";
 
 export default function App() {
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [examPassword, setExamPassword] = useState("")
-    const [error, setError] = useState(null)
+    const fieldScheme = yup.object()
+        .shape({
+            email: yup.string()
+                .required("Введите данные"),
+            password: yup.string()
+                .required("Введите данные")
+                .min(3, "Неверный пароль. Должно быть не меньше 3 символов"),
+            examPassword: yup.string()
+                .required("Повторите пароль")
+                .oneOf([yup.ref("password")], "Пароли не совпадают")
+        })
 
-    const onSubmit = (event) => {
-        event.preventDefault();
-        if (email && password && examPassword) {
-            sendFormData({email, password, examPassword});
-        } else {
-            setError("Пожалуйста, убедитесь, что заполнены все поля")
-        }
-    };
+    const {
+        register,
+        handleSubmit,
+        formState: {errors}
+    } = useForm({
+        defaultValues: {
+            email: "",
+            password: "",
+            examPassword: ""
+        },
+        resolver: yupResolver(fieldScheme)
+    })
 
-
-    const validationMail = ({target}) => {
-        setEmail(target.value)
-
-        let mailError = null
-
-        if (target.value.length < 1) {
-            mailError = "Введите почту"
-        }
-        setError(mailError)
-    }
-
-    const validationPassword = ({target}) => {
-        setPassword(target.value)
-
-        let passwordError = null
-
-        if (target.value.length < 3) {
-            passwordError = "Неверный пароль. Должно быть не меньше 3 символов";
-        } else if (target.value.length <= 1) {
-            passwordError = "Введите пароль";
-        }
-        setError(passwordError)
-    }
-
-    const validationExamPassword = ({target}) => {
-        setExamPassword(target.value)
-
-        let passwordError = null
-
-        if (target.value !== password) {
-            passwordError = "Пароли не совпадают";
-        }
-        setError(passwordError)
-    }
-
-    console.log(error)
-
+    const onSubmit = (formData) => console.log(formData)
 
     return (
         <div className="App">
             <header className="App-header">
-                <form className="form-style" onSubmit={onSubmit}>
-                    {error && <p className="input">{error}</p>}
+                <form className="form-style" onSubmit={handleSubmit(onSubmit)}>
+
+                    {errors.email && <p>{errors.email.message}</p>}
+                    {errors.password && <p>{errors.password.message}</p>}
+                    {errors.examPassword && <p>{errors.examPassword.message}</p>}
+
                     <input className="input" name="email" type="email"
                            placeholder="Почта"
-                           onChange={validationMail}/>
+                           {...register("email")}/>
                     <input className="input" name="password" type="password"
                            placeholder="Пароль"
-                           onChange={validationPassword}/>
+                           {...register("password")}/>
                     <input className="input" name="password" type="password"
                            placeholder="Повтор пароля"
-                           onChange={validationExamPassword}/>
+                           {...register("examPassword")}/>
                     <button className="btn" type="submit"
-                            disabled={!!error}>Зарегистрироваться
+                            disabled={!!errors.email && !!errors.password &&
+                                !!errors.examPassword}>Зарегистрироваться
                     </button>
                 </form>
             </header>
