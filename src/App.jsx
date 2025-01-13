@@ -1,65 +1,59 @@
 import "./App.css";
-import {useState} from "react";
+import {useRef, useState} from "react";
 
 const sendFormData = (formData) => {
     console.log(formData);
 };
 
+const validateEmail = (email) => {
+    if (!email) return "Введите почту";
+    return null;
+};
+
+const validatePassword = (password, confirmPassword) => {
+    if (!password) return "Введите пароль";
+    if (password.length < 3) return "Неверный пароль. Должно быть не меньше 3 символов";
+    if (password !== confirmPassword) return "Пароли не совпадают";
+    return null;
+};
 
 export default function App() {
 
+    const registerButton = useRef(null)
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [examPassword, setExamPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
     const [error, setError] = useState(null)
 
     const onSubmit = (event) => {
         event.preventDefault();
-        if (email && password && examPassword) {
-            sendFormData({email, password, examPassword});
+        const emailError = validateEmail(email);
+        const passwordError = validatePassword(password, confirmPassword);
+
+        if (!emailError && !passwordError) {
+            sendFormData({email, password});
+            if (registerButton.current) {
+                registerButton.current.focus(); // Focus on the button
+            }
         } else {
-            setError("Пожалуйста, убедитесь, что заполнены все поля")
+            setError(emailError || passwordError); // Show the first error encountered
         }
     };
 
-
-    const validationMail = ({target}) => {
-        setEmail(target.value)
-
-        let mailError = null
-
-        if (target.value.length < 1) {
-            mailError = "Введите почту"
+    const handleInputChange = (event) => {
+        const {name, value} = event.target;
+        if (name === "email") {
+            setEmail(value);
+            setError(validateEmail(value));
+        } else if (name === "password") {
+            setPassword(value);
+            setError(validatePassword(value, confirmPassword));
+        } else if (name === "confirmPassword") {
+            setConfirmPassword(value);
+            setError(validatePassword(password, value));
         }
-        setError(mailError)
     }
-
-    const validationPassword = ({target}) => {
-        setPassword(target.value)
-
-        let passwordError = null
-
-        if (target.value.length < 3) {
-            passwordError = "Неверный пароль. Должно быть не меньше 3 символов";
-        } else if (target.value.length <= 1) {
-            passwordError = "Введите пароль";
-        }
-        setError(passwordError)
-    }
-
-    const validationExamPassword = ({target}) => {
-        setExamPassword(target.value)
-
-        let passwordError = null
-
-        if (target.value !== password) {
-            passwordError = "Пароли не совпадают";
-        }
-        setError(passwordError)
-    }
-
-    console.log(error)
-
 
     return (
         <div className="App">
@@ -68,15 +62,19 @@ export default function App() {
                     {error && <p className="input">{error}</p>}
                     <input className="input" name="email" type="email"
                            placeholder="Почта"
-                           onChange={validationMail}/>
+                           value={email}
+                           onChange={handleInputChange}/>
                     <input className="input" name="password" type="password"
                            placeholder="Пароль"
-                           onChange={validationPassword}/>
-                    <input className="input" name="password" type="password"
+                           value={password}
+                           onChange={handleInputChange}/>
+                    <input className="input" name="confirmPassword" type="password"
                            placeholder="Повтор пароля"
-                           onChange={validationExamPassword}/>
+                           value={confirmPassword}
+                           onChange={handleInputChange}/>
                     <button className="btn" type="submit"
-                            disabled={!!error}>Зарегистрироваться
+                            disabled={!!error}
+                            ref={registerButton}>Зарегистрироваться
                     </button>
                 </form>
             </header>
